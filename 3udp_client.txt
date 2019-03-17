@@ -1,0 +1,44 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include<stdio.h>
+
+#define MAXLINE 1024
+
+
+int main() {
+    int sockfd;
+    char buffer[MAXLINE];
+    char *request = "Request Time ";
+    struct sockaddr_in     servaddr;
+
+
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(1);
+    }
+
+    memset(&servaddr, 0, sizeof(servaddr));
+
+
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(8497);
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+
+    int n, len;
+
+    sendto(sockfd, (const char *)request, strlen(request),MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
+    printf("Time Request Message  sent to Server.\n");
+
+    n = recvfrom(sockfd, (char *)buffer, MAXLINE,MSG_WAITALL, (struct sockaddr *) &servaddr,&len);
+    printf("%d",n);
+        buffer[n] = '\0';
+            printf("Server sent response time : %s\n", buffer);
+
+                close(sockfd);
+                    return 0;
+                    }

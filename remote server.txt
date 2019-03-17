@@ -1,0 +1,81 @@
+#include<stdio.h>
+#include<fcntl.h>
+#include<stdlib.h>
+#include<string.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+main()
+{
+        int sockfd,new_sockfd,rval,fd;
+        char buff1[400],buff2[400];
+        struct sockaddr_in server,client;
+        int len;
+        sockfd=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+        if(sockfd<0)
+        {
+                perror("\nSOCK_ERR\n");
+                exit(1);
+        }
+        server.sin_family=AF_INET;
+        server.sin_addr.s_addr=INADDR_ANY;
+        server.sin_port=htons(1212);
+        rval=bind(sockfd,(struct sockaddr* )&server,sizeof(server));
+        if(rval!=-1)
+        {
+                listen(sockfd,5);
+                while(1)
+                {
+                        len=sizeof(client);
+                        new_sockfd=accept(sockfd,(struct sockaddr*)&client,&len);
+                        if(new_sockfd!=-1)
+                        {
+                                rval=recv(new_sockfd,buff1,sizeof(buff1),0);
+                                if(rval==-1)
+                                {
+                                        perror("\n RECV_ERROR\n");
+                                        exit(1);
+                                }
+                                else
+                                {
+                                        strcat(buff1,">FILE.txt");
+                                        system(buff1);
+                                        fd=open("FILE.txt",O_RDONLY,0666);
+                                        if(fd==-1)
+                                        {
+                                                printf("\n FILE_ERROR\n");
+                                                exit(1);
+                                        }
+                                        read(fd,buff2,sizeof(buff2));
+                                }
+		 
+                                rval=send(new_sockfd,buff2,sizeof(buff2),0);
+                                if(rval!=1)
+                                {
+                                        printf("\n Message sent succesfully");
+                                }
+                                else
+                                {
+                                        printf("SEND_ERROR\n");
+                                        exit(1);
+                                }
+
+                        }
+                        else
+                        {
+                                perror("\n ACCEPT ERROR");
+                        }
+                }
+
+        }
+                else
+                {
+                        perror("\n BIND ERROR\n");
+                        close(sockfd);
+
+                }
+
+}
+
+
